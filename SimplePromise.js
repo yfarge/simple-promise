@@ -21,35 +21,35 @@ class SimplePromise {
     }
 
     then(onFulfilled, onRejected) {
-        return new SimplePromise((resolve, reject) => {
-            this.#promiseFulfillReactions.push((result) => {
-                if (onFulfilled == null) {
-                    resolve(result)
-                    return
-                }
+        const { promise, resolve, reject } = SimplePromise.withResolvers()
+        this.#promiseFulfillReactions.push((result) => {
+            if (onFulfilled == null) {
+                resolve(result)
+                return
+            }
 
-                try {
-                    resolve(onFulfilled(result))
-                } catch (e) {
-                    reject(e)
-                }
-            })
-
-            this.#promiseRejectReactions.push((result) => {
-                if (onRejected == null) {
-                    reject(result)
-                    return
-                }
-
-                try {
-                    resolve(onRejected(result))
-                } catch (e) {
-                    reject(e)
-                }
-            })
-
-            this.#processCallbacks()
+            try {
+                resolve(onFulfilled(result))
+            } catch (e) {
+                reject(e)
+            }
         })
+
+        this.#promiseRejectReactions.push((result) => {
+            if (onRejected == null) {
+                reject(result)
+                return
+            }
+
+            try {
+                resolve(onRejected(result))
+            } catch (e) {
+                reject(e)
+            }
+        })
+
+        this.#processCallbacks()
+        return promise
     }
 
     catch(onRejected) {
@@ -80,71 +80,65 @@ class SimplePromise {
     static all(promises) {
         const result = []
         let fulfilledPromises = 0
-        return new SimplePromise((resolve, reject) => {
-            promises.forEach((promise, i) => {
-                promise
-                    .then((value) => {
-                        fulfilledPromises++
-                        result[i] = value
+        const { promise, resolve, reject } = SimplePromise.withResolvers()
+        promises.forEach((p, i) => {
+            p.then((value) => {
+                fulfilledPromises++
+                result[i] = value
 
-                        if (fulfilledPromises === promises.length) {
-                            resolve(result)
-                        }
-                    })
-                    .catch(reject)
-            })
+                if (fulfilledPromises === promises.length) {
+                    resolve(result)
+                }
+            }).catch(reject)
         })
+        return promise
     }
 
     static allSettled(promises) {
         const result = []
         let completedPromises = 0
-        return new SimplePromise((resolve) => {
-            promises.forEach((promise, i) => {
-                promise
-                    .then((value) => {
-                        result[i] = { status: STATE.FULFILLED, value }
-                    })
-                    .catch((reason) => {
-                        result[i] = { status: STATE.REJECTED, reason }
-                    })
-                    .finally(() => {
-                        completedPromises++
-                        if (completedPromises === promises.length) {
-                            resolve(result)
-                        }
-                    })
+        const { promise, resolve } = SimplePromise.withResolvers()
+        promises.forEach((p, i) => {
+            p.then((value) => {
+                result[i] = { status: STATE.FULFILLED, value }
             })
+                .catch((reason) => {
+                    result[i] = { status: STATE.REJECTED, reason }
+                })
+                .finally(() => {
+                    completedPromises++
+                    if (completedPromises === promises.length) {
+                        resolve(result)
+                    }
+                })
         })
+        return promise
     }
 
     static race(promises) {
-        return new SimplePromise((resolve, reject) => {
-            promises.forEach((promise) => {
-                promise.then(resolve).catch(reject)
-            })
+        const { promise, resolve, reject } = SimplePromise.withResolvers()
+        promises.forEach((p) => {
+            p.then(resolve).catch(reject)
         })
+        return promise
     }
 
     static any(promises) {
         const errors = []
         let rejectedPromises = 0
-        return new SimplePromise((resolve, reject) => {
-            promises.forEach((promise, i) => {
-                promise.then(resolve).catch((reason) => {
-                    rejectedPromises++
-                    errors[i] = reason
-                    if (rejectedPromises === promises.length) {
-                        reject(
-                            new AggregateError(
-                                errors,
-                                'All promises were rejected'
-                            )
-                        )
-                    }
-                })
+        const { promise, resolve, reject } = SimplePromise.withResolvers()
+        promises.forEach((p, i) => {
+            p.then(resolve).catch((reason) => {
+                rejectedPromises++
+                errors[i] = reason
+                if (rejectedPromises === promises.length) {
+                    reject(
+                        new AggregateError(errors, 'All promises were rejected')
+                    )
+                }
             })
         })
+        return promise
     }
 
     static withResolvers() {
