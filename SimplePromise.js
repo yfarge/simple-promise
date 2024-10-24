@@ -1,7 +1,7 @@
 const STATE = {
-    PENDING: 0,
-    FULFILLED: 1,
-    REJECTED: 2,
+    PENDING: 'pending',
+    FULFILLED: 'fulfilled',
+    REJECTED: 'rejected',
 }
 
 class SimplePromise {
@@ -67,6 +67,84 @@ class SimplePromise {
                 throw reason
             }
         )
+    }
+
+    static resolve(value) {
+        return new SimplePromise((resolve) => resolve(value))
+    }
+
+    static reject(value) {
+        return new SimplePromise((reject) => reject(value))
+    }
+
+    static all(promises) {
+        const result = []
+        let fulfilledPromises = 0
+        return new SimplePromise((resolve, reject) => {
+            promises.forEach((promise, i) => {
+                promise
+                    .then((value) => {
+                        fulfilledPromises++
+                        result[i] = value
+
+                        if (fulfilledPromises === promises.length) {
+                            resolve(result)
+                        }
+                    })
+                    .catch(reject)
+            })
+        })
+    }
+
+    static allSettled(promises) {
+        const result = []
+        let completedPromises = 0
+        return new SimplePromise((resolve) => {
+            promises.forEach((promise, i) => {
+                promise
+                    .then((value) => {
+                        result[i] = { status: STATE.FULFILLED, value }
+                    })
+                    .catch((reason) => {
+                        result[i] = { status: STATE.REJECTED, reason }
+                    })
+                    .finally(() => {
+                        completedPromises++
+                        if (completedPromises === promises.length) {
+                            resolve(result)
+                        }
+                    })
+            })
+        })
+    }
+
+    static race(promises) {
+        return new SimplePromise((resolve, reject) => {
+            promises.forEach((promise) => {
+                promise.then(resolve).catch(reject)
+            })
+        })
+    }
+
+    static any(promises) {
+        const errors = []
+        let rejectedPromises = 0
+        return new SimplePromise((resolve, reject) => {
+            promises.forEach((promise, i) => {
+                promise.then(resolve).catch((reason) => {
+                    rejectedPromises++
+                    errors[i] = reason
+                    if (rejectedPromises === promises.length) {
+                        reject(
+                            new AggregateError(
+                                errors,
+                                'All promises were rejected'
+                            )
+                        )
+                    }
+                })
+            })
+        })
     }
 
     #processCallbacks() {
