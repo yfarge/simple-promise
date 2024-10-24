@@ -188,4 +188,18 @@ describe('static methods', () => {
             })
         })
     })
+
+    describe('withResolvers', () => {
+        it('should resolve the promise to the correct value passed to resolve', async () => {
+            const { promise, resolve } = SimplePromise.withResolvers()
+            resolve(DEFAULT_VALUE)
+            await promise.then((value) => expect(value).toBe(DEFAULT_VALUE))
+        })
+
+        it('should reject the promise to the correct reason passed to reject', async () => {
+            const { promise, reject } = SimplePromise.withResolvers()
+            reject(ERROR_MESSAGE)
+            await promise.catch((reason) => expect(reason).toBe(ERROR_MESSAGE))
+        })
+    })
 })
