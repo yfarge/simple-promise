@@ -166,7 +166,7 @@ class SimplePromise {
     #onResolve(value) {
         queueMicrotask(() => {
             if (this.#state !== STATE.PENDING) return
-            if (value instanceof SimplePromise) {
+            if (value && typeof value.then === 'function') {
                 value.then(this.#onResolveBinded, this.#onRejectBinded)
                 return
             }
