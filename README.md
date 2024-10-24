@@ -5,7 +5,7 @@
 ## Features
 
 -   **Standard Promise Methods**: Supports `.then()`, `.catch()`, and `.finally()` methods.
--   **Static Methods**: Implements `SimplePromise.resolve()`, `SimplePromise.reject()`, `SimplePromise.all()`, `SimplePromise.allSettled()`, `SimplePromise.race()`, and `SimplePromise.any()`.
+-   **Static Methods**: Implements `SimplePromise.resolve()`, `SimplePromise.reject()`, `SimplePromise.all()`, `SimplePromise.allSettled()`, `SimplePromise.race()`, `SimplePromise.any()`, and `SimplePromise.withResolvers()`.
 -   **Custom Uncaught Rejection Handling**: Throws `UncaughtPromiseError` if a rejection is not handled.
 -   **Microtask-based Execution**: Uses `queueMicrotask()` to manage asynchronous execution.
 
@@ -101,6 +101,20 @@ new SimplePromise((resolve) => resolve('Done')).finally(() =>
         SimplePromise.reject('Failed'),
         SimplePromise.resolve('First Success'),
     ]).then((value) => console.log(value)) // Output: "First Success"
+    ```
+
+-   **`SimplePromise.withResolvers()`**:
+
+    ```javascript
+    const { promise, resolve, reject } = SimplePromise.withResolvers()
+    resolve('fulfilled')
+    promise.then((value) => console.log(value)) // Output: "fulfilled"
+    ```
+
+    ```javascript
+    const { promise, resolve, reject } = SimplePromise.withResolvers()
+    reject('rejected')
+    promise.catch((reason) => console.error(reason)) // Output: "rejected"
     ```
 
 ## Testing
