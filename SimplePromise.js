@@ -147,6 +147,15 @@ class SimplePromise {
         })
     }
 
+    static withResolvers() {
+        let resolve, reject
+        const promise = new SimplePromise((resolve_, reject_) => {
+            resolve = resolve_
+            reject = reject_
+        })
+        return { promise, resolve, reject }
+    }
+
     #processCallbacks() {
         if (this.#state === STATE.FULFILLED) {
             this.#promiseFulfillReactions.forEach((onFulfilled) =>
