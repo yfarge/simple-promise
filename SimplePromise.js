@@ -57,7 +57,7 @@ class SimplePromise {
     }
 
     finally(onFinally) {
-        this.then(
+        return this.then(
             (value) => {
                 onFinally()
                 return value
