@@ -5,6 +5,11 @@ const DEFAULT_VALUE = 'default'
 const ERROR_MESSAGE = 'error'
 
 describe('then', () => {
+    it('should return a promise', () => {
+        const promise = new SimplePromise((resolve) => resolve(DEFAULT_VALUE))
+        expect(promise.then(undefined, undefined)).toBeInstanceOf(SimplePromise)
+    })
+
     it('should resolve with the correct value', async () => {
         await new SimplePromise((resolve) => resolve(DEFAULT_VALUE)).then(
             (value) => expect(value).toBe(DEFAULT_VALUE)
@@ -44,6 +49,11 @@ describe('then', () => {
 })
 
 describe('catch', () => {
+    it('should return a promise', () => {
+        const promise = new SimplePromise((resolve) => resolve(DEFAULT_VALUE))
+        expect(promise.catch(undefined)).toBeInstanceOf(SimplePromise)
+    })
+
     it('should reject with the correct value', async () => {
         await new SimplePromise((_, reject) => reject(ERROR_MESSAGE)).catch(
             (reason) => expect(reason).toBe(ERROR_MESSAGE)
@@ -74,6 +84,11 @@ describe('catch', () => {
 })
 
 describe('finally', () => {
+    it('should return a promise', () => {
+        const promise = new SimplePromise((resolve) => resolve(DEFAULT_VALUE))
+        expect(promise.finally(() => { })).toBeInstanceOf(SimplePromise)
+    })
+
     it("should call the 'onFinally' callback without arguments", async () => {
         await new SimplePromise((resolve) => resolve(DEFAULT_VALUE)).finally(
             (value) => expect(value).toBeUndefined()
